@@ -115,13 +115,13 @@ app.post("/users/bulk-lookup", (req, res) => {
     });
   }
 
-  // Convert array into a string of placeholders (?, ?, ?)
-  const placeholders = phones.map(() => "?").join(",");
+  // Normalize all phone numbers to last 10 digits
+  const normalizedPhones = phones.map((phone) => phone.slice(-10));
 
-  // SQL query to find matching users
-  const sql = `SELECT phone, name FROM users WHERE phone IN (${placeholders})`;
+  // SQL query to find matching users (checking last 10 digits)
+  const sql = `SELECT phone, name FROM users`;
 
-  db.all(sql, phones, (err, rows) => {
+  db.all(sql, [], (err, rows) => {
     if (err) {
       return res.status(500).json({
         status: "error",
@@ -129,14 +129,18 @@ app.post("/users/bulk-lookup", (req, res) => {
       });
     }
 
-    // Create a response mapping input phones to DB results
-    const mappedResults = phones.map((phone) => {
-      const user = rows.find(
-        (user) => user.phone === phone || "+91" + user.phone === phone
-      );
+    // Normalize DB phone numbers (to match input format)
+    const normalizedUsers = rows.map((user) => ({
+      phone: user.phone.slice(-10),
+      name: user.name,
+    }));
+
+    // Map input phones to database results
+    const mappedResults = normalizedPhones.map((phone) => {
+      const user = normalizedUsers.find((user) => user.phone === phone);
       return {
         phone,
-        name: user ? user.name : null, // If user exists, return name; otherwise, null
+        name: user ? user.name : null, // Return name if found, else null
       };
     });
 
