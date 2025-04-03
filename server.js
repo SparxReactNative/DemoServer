@@ -115,10 +115,13 @@ app.post("/users/bulk-lookup", (req, res) => {
     });
   }
 
-  // Normalize all phone numbers to last 10 digits
-  const normalizedPhones = phones.map((phone) => phone.slice(-10));
+  // Normalize all phone numbers to last 10 digits for lookup
+  const normalizedPhones = phones.map((phone) => ({
+    original: phone, // Keep original format
+    normalized: phone.slice(-10), // Extract last 10 digits
+  }));
 
-  // SQL query to find matching users (checking last 10 digits)
+  // SQL query to fetch all users from the database
   const sql = `SELECT phone, name FROM users`;
 
   db.all(sql, [], (err, rows) => {
@@ -129,18 +132,18 @@ app.post("/users/bulk-lookup", (req, res) => {
       });
     }
 
-    // Normalize DB phone numbers (to match input format)
+    // Normalize DB phone numbers for comparison
     const normalizedUsers = rows.map((user) => ({
-      phone: user.phone.slice(-10),
+      phone: user.phone.slice(-10), // Last 10 digits
       name: user.name,
     }));
 
     // Map input phones to database results
-    const mappedResults = normalizedPhones.map((phone) => {
-      const user = normalizedUsers.find((user) => user.phone === phone);
+    const mappedResults = normalizedPhones.map(({ original, normalized }) => {
+      const user = normalizedUsers.find((user) => user.phone === normalized);
       return {
-        phone,
-        name: user ? user.name : null, // Return name if found, else null
+        phone: original, // Preserve original input format
+        name: user ? user.name : null,
       };
     });
 
