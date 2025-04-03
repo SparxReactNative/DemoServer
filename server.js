@@ -148,7 +148,7 @@ app.post("/users/bulk-lookup", (req, res) => {
   });
 });
 
-// Start Server
+// Start Server ok
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
