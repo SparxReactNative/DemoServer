@@ -52,7 +52,7 @@ app.post("/users", (req, res) => {
   }
 
   db.run(
-    `INSERT INTO users (name, email) VALUES (?, ?)`,
+    `INSERT INTO users (name, phone) VALUES (?, ?)`,
     [name, email],
     function (err) {
       if (err) {
