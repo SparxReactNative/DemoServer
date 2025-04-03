@@ -63,27 +63,61 @@ app.get("/users", (req, res) => {
   });
 });
 
-// Route to add a new user
 app.post("/users", (req, res) => {
-  console.log("Received request:", req.body); // Debugging log
   const { name, phone } = req.body;
+
   if (!name || !phone) {
-    return res
-      .status(400)
-      .json({ status: "error", message: "Missing name or phone" });
+    return res.status(400).json({
+      status: "error",
+      message: "Name and phone number are required",
+    });
   }
 
-  db.run(
-    `INSERT INTO users (name, phone) VALUES (?, ?)`,
-    [name, phone],
-    function (err) {
-      if (err) {
-        res.status(500).json({ status: "error", message: err.message });
-      } else {
-        res.json({ status: "success", message: "Users saved successfully" });
-      }
+  // Check if the phone number already exists
+  db.get("SELECT * FROM users WHERE phone = ?", [phone], (err, user) => {
+    if (err) {
+      return res.status(500).json({
+        status: "error",
+        message: err.message,
+      });
     }
-  );
+
+    if (user) {
+      // If user exists, return response
+      return res.status(409).json({
+        status: "error",
+        message: `This phone number is already saved with the name: ${user.name}`,
+      });
+    }
+
+    // If user does not exist, insert the new user
+    db.run(
+      "INSERT INTO users (name, phone) VALUES (?, ?)",
+      [name, phone],
+      function (err) {
+        if (err) {
+          return res.status(500).json({
+            status: "error",
+            message: err.message,
+          });
+        }
+
+        res.status(201).json({
+          status: "success",
+          message: "User added successfully",
+          data: {
+            id: this.lastID,
+            name,
+            phone,
+          },
+        });
+      }
+    );
+  });
+});
+
+app.post("/usersnew", (req, res) => {
+  const { name, phone } = req.body;
 });
 
 // Start Server
