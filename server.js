@@ -53,7 +53,7 @@ app.post("/users", (req, res) => {
 
   db.run(
     `INSERT INTO users (name, phone) VALUES (?, ?)`,
-    [name, email],
+    [name, phone],
     function (err) {
       if (err) {
         res.status(500).json({ error: err.message });
