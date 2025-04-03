@@ -131,7 +131,9 @@ app.post("/users/bulk-lookup", (req, res) => {
 
     // Create a response mapping input phones to DB results
     const mappedResults = phones.map((phone) => {
-      const user = rows.find((user) => user.phone === phone);
+      const user = rows.find(
+        (user) => user.phone === phone || "+91" + user.phone === phone
+      );
       return {
         phone,
         name: user ? user.name : null, // If user exists, return name; otherwise, null
