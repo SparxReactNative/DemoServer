@@ -32,14 +32,34 @@ const db = new sqlite3.Database("./localdb.sqlite", (err) => {
 });
 console.log("afasdf");
 // Route to get all users
+// app.get("/users", (req, res) => {
+//   console.log("Received request:");
+//   db.all("SELECT * FROM users", [], (err, rows) => {
+//     if (err) {
+//       res.status(500).json({ error: err.message });
+//     } else {
+//       res.json(rows);
+//     }
+//   });
+// });
+
 app.get("/users", (req, res) => {
   console.log("Received request:");
+
   db.all("SELECT * FROM users", [], (err, rows) => {
     if (err) {
-      res.status(500).json({ error: err.message });
-    } else {
-      res.json(rows);
+      return res.status(500).json({
+        status: "error",
+        message: err.message,
+        data: [],
+      });
     }
+
+    res.status(200).json({
+      status: "success",
+      message: "Users fetched successfully",
+      data: rows,
+    });
   });
 });
 
@@ -48,7 +68,9 @@ app.post("/users", (req, res) => {
   console.log("Received request:", req.body); // Debugging log
   const { name, phone } = req.body;
   if (!name || !phone) {
-    return res.status(400).json({ error: "Missing name or phone" });
+    return res
+      .status(400)
+      .json({ status: "error", message: "Missing name or phone" });
   }
 
   db.run(
@@ -56,9 +78,9 @@ app.post("/users", (req, res) => {
     [name, phone],
     function (err) {
       if (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ status: "error", message: err.message });
       } else {
-        res.json({ id: this.lastID, name, phone });
+        res.json({ status: "success", message: "Users saved successfully" });
       }
     }
   );
