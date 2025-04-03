@@ -26,7 +26,7 @@ const db = new sqlite3.Database("./localdb.sqlite", (err) => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT,
-      email TEXT
+      phone TEXT
     )`);
   }
 });
@@ -46,9 +46,9 @@ app.get("/users", (req, res) => {
 // Route to add a new user
 app.post("/users", (req, res) => {
   console.log("Received request:", req.body); // Debugging log
-  const { name, email } = req.body;
-  if (!name || !email) {
-    return res.status(400).json({ error: "Missing name or email" });
+  const { name, phone } = req.body;
+  if (!name || !phone) {
+    return res.status(400).json({ error: "Missing name or phone" });
   }
 
   db.run(
@@ -58,7 +58,7 @@ app.post("/users", (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else {
-        res.json({ id: this.lastID, name, email });
+        res.json({ id: this.lastID, name, phone });
       }
     }
   );
