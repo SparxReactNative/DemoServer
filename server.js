@@ -31,17 +31,6 @@ const db = new sqlite3.Database("./localdb.sqlite", (err) => {
   }
 });
 console.log("afasdf");
-// Route to get all users
-// app.get("/users", (req, res) => {
-//   console.log("Received request:");
-//   db.all("SELECT * FROM users", [], (err, rows) => {
-//     if (err) {
-//       res.status(500).json({ error: err.message });
-//     } else {
-//       res.json(rows);
-//     }
-//   });
-// });
 
 app.get("/users", (req, res) => {
   console.log("Received request:");
@@ -116,8 +105,45 @@ app.post("/users", (req, res) => {
   });
 });
 
-app.post("/usersnew", (req, res) => {
-  const { name, phone } = req.body;
+app.post("/users/bulk-lookup", (req, res) => {
+  const { phones } = req.body; // Expecting an array of phone numbers
+
+  if (!Array.isArray(phones) || phones.length === 0) {
+    return res.status(400).json({
+      status: "error",
+      message: "Phones must be a non-empty array",
+    });
+  }
+
+  // Convert array into a string of placeholders (?, ?, ?)
+  const placeholders = phones.map(() => "?").join(",");
+
+  // SQL query to find matching users
+  const sql = `SELECT phone, name FROM users WHERE phone IN (${placeholders})`;
+
+  db.all(sql, phones, (err, rows) => {
+    if (err) {
+      return res.status(500).json({
+        status: "error",
+        message: err.message,
+      });
+    }
+
+    // Create a response mapping input phones to DB results
+    const mappedResults = phones.map((phone) => {
+      const user = rows.find((user) => user.phone === phone);
+      return {
+        phone,
+        name: user ? user.name : null, // If user exists, return name; otherwise, null
+      };
+    });
+
+    res.status(200).json({
+      status: "success",
+      message: "Phone number lookup completed",
+      data: mappedResults,
+    });
+  });
 });
 
 // Start Server
