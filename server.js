@@ -6,7 +6,7 @@ const app = express();
 const PORT = 8001;
 
 // Middleware
-// Allow all origins
+// Allow all origin
 app.use(
   cors({
     origin: "*",
